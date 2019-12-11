@@ -380,17 +380,39 @@ s275.dat <- bind_rows(s275.96, s275.97, s275.98, s275.99, s275.00, s275.01,
                       s275.08, s275.09, s275.10, s275.11, s275.12, s275.13,
                       s275.14, s275.15, s275.16, s275.17, s275.18, s275.19) %>%
   arrange(cert, syear, codistid, bldg)
-s275.district <- select(s275.dat, cert, syear, codistid, lname, fname, mname, 
-                        male, race, hdeg, hyear, exp, certfte, clasfte, 
-                        tfinsal, cbrtn) %>% distinct()
-s275.assignment <- select(s275.dat, cert, syear, codistid, bldg, 
-                          prog, act, droot, dsufx, grade, assfte)
-rm(s275.dat, s275.96, s275.97, s275.98, s275.99, s275.00, s275.01,
+rm(s275.96, s275.97, s275.98, s275.99, s275.00, s275.01,
    s275.02, s275.03, s275.04, s275.05, s275.06, s275.07,
    s275.08, s275.09, s275.10, s275.11, s275.12, s275.13,
    s275.14, s275.15, s275.16, s275.17, s275.18, s275.19)
-                      
 
+# Clean string variables.
+s275.dat <- mutate(s275.dat,
+                   cert=trimws(cert),
+                   lname=trimws(lname),
+                   fname=trimws(fname),
+                   mname=trimws(mname),
+                   prog=trimws(prog),
+                   act=trimws(act),
+                   droot=trimws(droot),
+                   dsufx=trimws(dsufx))
+
+# Drop personnel without certificate numbers.
+s275.dat <- filter(s275.dat, cert != "")
+
+# Create district dataset with teacher characteristics.
+s275.district <- select(s275.dat, cert, syear, codistid, lname, fname, 
+                        male, race, hdeg, hyear, exp, certfte, clasfte, 
+                        tfinsal, cbrtn) %>% distinct()
+
+# Resolve multiple observations per district/year using means of
+# experience and salary.
+s275.district <- group_by(s275.district, cert, syear, codistid) %>%
+  mutate(tfinsal = mean(tfinsal),
+         exp = mean(exp)) %>% distinct() %>%
+  group_by(cert, syear, codistid) %>%
+  mutate(numobs = n()) %>%
+  filter(numobs == 1) %>% select(-numobs) %>% ungroup()
+                      
 # Deflate salaries using annual PCE data.
 # Index 2012=100, Seasonally Adjusted
 pcepi <- fredr("DPCERG3A086NBEA") %>% mutate(syear = year(date) + 1)
@@ -412,17 +434,10 @@ s275.district <- mutate(s275.district,
 xtabs(~hyear, s275.district)
 
 
-s275.district <- mutate(s275.district,
-                        cert=trimws(cert),
-                        lname=trimws(lname),
-                        fname=trimws(fname),
-                        mname=trimws(mname))
-s275.assignment <- mutate(s275.assignment,
-                          cert=trimws(cert),
-                          prog=trimws(prog),
-                          act=trimws(act),
-                          droot=trimws(droot),
-                          dsufx=trimws(dsufx))
+
+s275.assignment <- select(s275.dat, cert, syear, codistid, bldg, 
+                          prog, act, droot, dsufx, grade, assfte)
+
 
 save(s275.district, file="./output/s275_district_1996_2019.RData")
 save(s275.assignment, file="./output/s275_assignment_1996_2019.RData")
