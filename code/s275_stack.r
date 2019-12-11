@@ -396,7 +396,7 @@ rm(s275.dat, s275.96, s275.97, s275.98, s275.99, s275.00, s275.01,
 pcepi <- fredr("DPCERG3A086NBEA") %>% mutate(syear = year(date) + 1)
 s275.district <- left_join(s275.district, pcepi, by="syear") %>%
   mutate(tfinsal12 = tfinsal * (100 / value)) %>%
-  select(-series_id, -date)
+  select(-series_id, -date, -value)
 rm(pcepi)
 
 # Fix incorrectly coded years.
