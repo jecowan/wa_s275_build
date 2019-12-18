@@ -49,16 +49,17 @@ s275_clean <- function(x, y) {
   x$ethnic <- toupper(x$ethnic)
   if(y<2011){
     x$race <- factor(x$ethnic, levels=c("A","B","H","I","W","M"),
-                     labels=c("Asian", "Black", "Hispanic","American Indian",
-                              "White","Multiracial"))
+                     labels=c("Asian", "Black", "Hispanic", "American Indian",
+                              "White", "Multiracial"))
   }
   if(y>=2011){
-    x$race <- gsub("\\s", "", x$ethnic)
-    x$race[which(nchar(x$ethnic)>1)] <- "M"
-    x$race[which(x$hispanic=="Y")] <- "H"
-    x$race <- factor(x$race, levels=c("A","B","H","I","W","M"),
-                     labels=c("Asian", "Black", "Hispanic","American Indian",
-                              "White","Multiracial"))
+    x <- mutate(x, ethnic = gsub("\\s", "", ethnic))
+    x <- mutate(x, ethnic = ifelse(nchar(ethnic)>1, "M", ethnic))
+    x <- mutate(x, ethnic = ifelse(hispanic == "Y", "H", ethnic))
+    x <- mutate(x, race = factor(ethnic, 
+      levels=c("A","B","H","I","W","M"),
+      labels=c("Asian", "Black", "Hispanic", "American Indian",
+        "White", "Multiracial")))
   }
 
   # Grade level.
