@@ -15,7 +15,9 @@ The files are hosted on Dropbox and have been downloaded from the OSPI website
 and converted to .csv files. The codebooks are included with the downloaded
 data. 
 
-Outputs two files:
+Outputs three files:
+
+* s275_stacked.RData: A stacked version of the S-275 with minimal data cleaning.
 
 * s275_district.RData: Employee-district level dataset with demographics, salary, and teacher characteristics.
 
